@@ -1,48 +1,77 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import TodoList from "./TodoList";
 import TodoFilter from "./TodoFilter";
-import "../styles/Todo.css"
-
+import "../styles/Todo.css";
+import { ColorRing } from "react-loader-spinner";
 
 const Todo = () => {
   const [todos, setTodos] = useState([]);
   const [filter, setFilter] = useState("all");
+  const [isLoading, setIsLoading] = useState(true); 
+  const todoId = localStorage.getItem("user_id");
+  const bearerToken = localStorage.getItem("jwt_token");
 
-  const addTodo = (text) => {
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const response = await fetch(
+          "https://jsonplaceholder.typicode.com/todos",
+          {
+            headers: {
+              Authorization: `Bearer ${bearerToken}`
+            }
+          }
+        );
+        const data = await response.json();
+        const filteredData = data.filter(
+          (todo) => todo.userId === parseInt(todoId, 10)
+        );
+        setTodos(filteredData);
+      } catch (error) {
+        console.error("Error fetching data:", error);
+      } finally {
+        setIsLoading(false); 
+      }
+    };
+
+    fetchData();
+  }, [todoId, bearerToken]); 
+
+  const addTodo = (title) => {
     const newTodo = {
       id: Date.now(),
-      text: text,
+      title,
       completed: false
     };
     setTodos([...todos, newTodo]);
   };
 
   const toggleTodo = (id) => {
-    const newTodos = todos.map((todo) =>
-      todo.id === id ? { ...todo, completed: !todo.completed } : todo
+    setTodos((prevTodos) =>
+      prevTodos.map((todo) =>
+        todo.id === id ? { ...todo, completed: !todo.completed } : todo
+      )
     );
-    setTodos(newTodos);
   };
 
   const removeTodo = (id) => {
-    const newTodos = todos.filter((todo) => todo.id !== id);
-    setTodos(newTodos);
+    setTodos((prevTodos) => prevTodos.filter((todo) => todo.id !== id));
   };
 
   const completeAll = () => {
-    const newTodos = todos.map((todo) =>
-      todo.completed ? todo : { ...todo, completed: true }
+    setTodos((prevTodos) =>
+      prevTodos.map((todo) => ({ ...todo, completed: true }))
     );
-    setTodos(newTodos);
   };
 
   const filteredTodos = todos.filter((todo) => {
-    if (filter === "active") {
-      return !todo.completed;
-    } else if (filter === "completed") {
-      return todo.completed;
-    } else {
-      return true;
+    switch (filter) {
+      case "active":
+        return !todo.completed;
+      case "completed":
+        return todo.completed;
+      default:
+        return true;
     }
   });
 
@@ -59,17 +88,33 @@ const Todo = () => {
           }
         }}
       />
-      <TodoList
-        todos={filteredTodos}
-        toggleTodo={toggleTodo}
-        removeTodo={removeTodo}
-      />
-      {todos.length !== 0 && (
-        <button onClick={completeAll}>Complete All</button>
+      {isLoading ? (
+        <div>
+          <ColorRing
+            visible={true}
+            height="80"
+            width="80"
+            ariaLabel="color-ring-loading"
+            wrapperStyle={{}}
+            wrapperClass="color-ring-wrapper"
+            colors={["#e15b64", "#f47e60", "#f8b26a", "#abbd81", "#849b87"]}
+          />
+        </div>
+      ) : (
+        <>
+          <TodoList
+            todos={filteredTodos}
+            toggleTodo={toggleTodo}
+            removeTodo={removeTodo}
+          />
+          {todos.length !== 0 && (
+            <button onClick={completeAll}>Complete All</button>
+          )}
+        </>
       )}
       <TodoFilter setFilter={setFilter} />
     </div>
   );
-}   
+};
 
 export default Todo;

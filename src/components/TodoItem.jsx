@@ -11,7 +11,7 @@ function TodoItem({ todo, toggleTodo, removeTodo }) {
       <span
         style={{ textDecoration: todo.completed ? "line-through" : "none" }}
       >
-        {todo.text}
+        { todo.title}
       </span>
       <button onClick={() => removeTodo(todo.id)}>Remove</button>
     </li>
@@ -21,7 +21,7 @@ function TodoItem({ todo, toggleTodo, removeTodo }) {
 TodoItem.propTypes = {
   todo: PropTypes.shape({
     id: PropTypes.number.isRequired,
-    text: PropTypes.string.isRequired,
+    title: PropTypes.string.isRequired, // Changed from text to title
     completed: PropTypes.bool.isRequired
   }).isRequired,
   toggleTodo: PropTypes.func.isRequired,
