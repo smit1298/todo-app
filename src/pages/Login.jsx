@@ -25,7 +25,7 @@ function Login() {
         // Create payload
         const payload = {
           username: user.username,
-          id: user.id // Adding user ID to payload
+          id: user.id
         };
         const secret = new TextEncoder().encode(secretDetail);
         const token = await new SignJWT(payload)
@@ -36,8 +36,10 @@ function Login() {
         localStorage.setItem("jwt_token", token);
         localStorage.setItem("user_id", user.id);
 
-        // Redirect to todo page
-        navigate("/todo");
+        // Redirect to home page after 2 seconds
+        setTimeout(() => {
+          navigate("/home");
+        }, 2000); // 2000 milliseconds = 2 seconds
       } catch (error) {
         console.error("Error signing JWT:", error);
         alert("Login failed. Please try again.");
